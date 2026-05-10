@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UFuture — Smart Attendance System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0: #080c14;
+    --bg1: #0f172a;
+    --bg2: #1e293b;
+    --bg3: #334155;
+    --text1: #f1f5f9;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --blue: #3b82f6;
+    --blue-dark: #1d4ed8;
+    --indigo: #6366f1;
+    --purple: #a855f7;
+    --purple-dark: #4c1d95;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg0);
+    color: var(--text1);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Utility ── */
+  .hidden { display: none !important; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .justify-center { justify-content: center; }
+  .flex-col { flex-direction: column; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .gap-4 { gap: 16px; }
+  .text-center { text-align: center; }
+  .w-full { width: 100%; }
+  .mt-1 { margin-top: 4px; }
+  .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; }
+  .mt-4 { margin-top: 16px; }
+  .mt-6 { margin-top: 24px; }
+  .mb-1 { margin-bottom: 4px; }
+  .mb-2 { margin-bottom: 8px; }
+  .mb-3 { margin-bottom: 12px; }
+  .mb-4 { margin-bottom: 16px; }
+  .mb-6 { margin-bottom: 24px; }
+
+  /* ── Nav ── */
+  .nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--bg3);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .nav-logo-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--blue), var(--indigo));
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .nav-logo-text { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+  .role-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 8px;
+    border-radius: 6px; letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  .role-student { background: #0c2d4a; color: #7dd3fc; }
+  .role-lecturer { background: #2e1065; color: #d8b4fe; }
+
+  /* ── Buttons ── */
+  button { font-family: var(--font); cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary {
+    background: var(--blue); color: #fff;
+    padding: 13px 24px; border-radius: var(--radius-md);
+    font-size: 15px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-ghost {
+    background: transparent; color: var(--text2);
+    padding: 8px 16px; border-radius: var(--radius-sm);
+    font-size: 13px; border: 1px solid var(--bg3);
+  }
+  .btn-ghost:hover { background: var(--bg2); color: var(--text1); }
+  .btn-back {
+    background: none; border: none; color: var(--text2);
+    font-size: 22px; padding: 0 10px 0 0; line-height: 1;
+  }
+  .btn-purple {
+    background: var(--purple-dark); color: #e9d5ff;
+    padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  }
+  .btn-purple:hover { background: #5b21b6; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+
+  /* ── Page container ── */
+  .page { display: none; }
+  .page.active { display: block; }
+  .container { max-width: 820px; margin: 0 auto; padding: 28px 24px; }
+  .container-sm { max-width: 460px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ════════════════════════════════════
+     LOGIN
+  ════════════════════════════════════ */
+  #page-login {
+    min-height: 100vh; background: var(--bg0);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .login-box { width: 100%; max-width: 420px; }
+  .login-logo { text-align: center; margin-bottom: 40px; }
+  .login-logo-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--blue), var(--indigo));
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 10px;
+  }
+  .login-logo h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; }
+  .login-logo p { color: var(--text3); font-size: 14px; margin-top: 4px; }
+  .login-card {
+    background: var(--bg2); border: 1px solid var(--bg3);
+    border-radius: var(--radius-xl); padding: 32px;
+  }
+  .user-option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px; border-radius: var(--radius-md);
+    border: 1.5px solid var(--bg3); background: var(--bg1);
+    cursor: pointer; width: 100%; text-align: left;
+    transition: all 0.15s; margin-bottom: 8px;
+  }
+  .user-option:hover { border-color: var(--bg3); background: var(--bg2); }
+  .user-option.selected { border-color: var(--blue); background: #1d3a5f; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .avatar-student { background: #0369a1; }
+  .avatar-lecturer { background: #4f46e5; }
+  .user-name { font-size: 14px; font-weight: 500; color: var(--text1); }
+  .user-meta { font-size: 12px; color: var(--text3); }
+  .check-icon { margin-left: auto; color: var(--blue); font-size: 18px; }
+  .security-note {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: var(--bg1); border: 1px solid var(--bg3);
+    border-radius: 10px; padding: 12px 14px; margin-top: 16px;
+  }
+  .security-note p { font-size: 12px; color: var(--text3); line-height: 1.5; }
+
+  /* ── Face ID animation ── */
+  .faceid-wrap { position: relative; width: 90px; height: 90px; margin: 0 auto; }
+  .faceid-wrap svg { width: 90px; height: 90px; }
+  #scan-line {
+    transition: transform 0.1s linear;
+    animation: none;
+  }
+  .scanning #scan-line { animation: scanMove 1.4s linear infinite; }
+  @keyframes scanMove {
+    0%   { transform: translateY(0); opacity: 0.8; }
+    50%  { opacity: 1; }
+    100% { transform: translateY(80px); opacity: 0; }
+  }
+  .scanning .face-stroke { stroke: var(--blue); transition: stroke 0.3s; }
+  .success-anim .face-stroke  { stroke: var(--green); transition: stroke 0.3s; }
+  .idle .face-stroke { stroke: var(--text3); }
+  .error-anim .face-stroke { stroke: var(--red); }
+
+  /* ════════════════════════════════════
+     STUDENT DASHBOARD
+  ════════════════════════════════════ */
+  .hero-card {
+    background: linear-gradient(135deg, #1d3a5f 0%, #1e1b4b 100%);
+    border: 1px solid #2563eb44;
+    border-radius: var(--radius-xl); padding: 28px; margin-bottom: 24px;
+  }
+  .hero-card h3 { color: #bfdbfe; font-size: 15px; margin-bottom: 6px; }
+  .hero-card p { color: var(--text3); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--bg2); border: 1px solid var(--bg3);
+    border-radius: var(--radius-lg); padding: 18px 16px; text-align: center;
+  }
+  .stat-icon { font-size: 26px; margin-bottom: 8px; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--text1); }
+  .stat-label { font-size: 12px; color: var(--text3); margin-top: 4px; }
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 14px;
+  }
+  .course-row {
+    background: var(--bg2); border: 1px solid var(--bg3); border-radius: 14px;
+    padding: 16px 18px; display: flex; align-items: center; gap: 16px;
+    margin-bottom: 10px;
+  }
+  .course-code-badge {
+    width: 46px; height: 46px; border-radius: 10px;
+    background: var(--bg1); border: 1px solid var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--blue);
+    flex-shrink: 0; font-family: var(--mono);
+  }
+  .course-name { font-size: 15px; font-weight: 500; }
+  .course-meta { font-size: 12px; color: var(--text3); margin-top: 3px; }
+  .course-count { font-size: 18px; font-weight: 700; color: var(--green); }
+  .course-count-label { font-size: 11px; color: var(--text3); }
+  .record-row {
+    padding: 14px 18px; border-bottom: 1px solid var(--bg3);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .record-row:last-child { border-bottom: none; }
+  .dot-green { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .badge-verified {
+    font-size: 11px; padding: 3px 10px; border-radius: 6px;
+    background: #052e16; color: #86efac; font-weight: 700;
+  }
+
+  /* ════════════════════════════════════
+     SCAN QR
+  ════════════════════════════════════ */
+  .camera-view {
+    background: #000; border-radius: 20px;
+    overflow: hidden; position: relative;
+    border: 2px solid var(--bg3); aspect-ratio: 1;
+    margin-bottom: 20px; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .camera-overlay {
+    position: absolute; inset: 0; background: #0a0a1a; opacity: 0.92;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scanner-corner {
+    position: absolute; width: 38px; height: 38px;
+    border-color: var(--blue); border-style: solid; border-width: 0;
+  }
+  .scanner-corner.tl { top: 18px; left: 18px; border-top-width: 3px; border-left-width: 3px; border-radius: 8px 0 0 0; }
+  .scanner-corner.tr { top: 18px; right: 18px; border-top-width: 3px; border-right-width: 3px; border-radius: 0 8px 0 0; }
+  .scanner-corner.bl { bottom: 18px; left: 18px; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 8px; }
+  .scanner-corner.br { bottom: 18px; right: 18px; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 8px 0; }
+  .camera-hint { color: var(--text3); font-size: 14px; position: relative; z-index: 1; text-align: center; }
+  .camera-icon { font-size: 40px; display: block; margin-bottom: 8px; }
+  .toggle-row {
+    background: var(--bg2); border: 1px solid var(--bg3); border-radius: var(--radius-md);
+    padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .toggle-label { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .toggle-sub { font-size: 12px; color: var(--text3); }
+  .toggle-btn {
+    width: 44px; height: 24px; border-radius: 12px; border: none;
+    background: var(--bg3); position: relative; cursor: pointer; transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-btn.on { background: var(--red); }
+  .toggle-knob {
+    position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; border-radius: 50%; background: #fff;
+    transition: left 0.2s;
+  }
+  .toggle-btn.on .toggle-knob { left: 22px; }
+  .geo-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  }
+  .geo-ok { background: #dcfce7; color: #15803d; }
+  .geo-fail { background: #fee2e2; color: #b91c1c; }
+  .geo-pending { background: var(--bg3); color: var(--text2); }
+  .course-select-option {
+    padding: 11px 14px; border-radius: 10px;
+    border: 1.5px solid var(--bg3); background: var(--bg2);
+    color: var(--text1); cursor: pointer; width: 100%;
+    text-align: left; font-size: 14px; margin-bottom: 8px;
+    transition: all 0.15s;
+  }
+  .course-select-option.sel { border-color: var(--blue); background: #1d3a5f; }
+
+  /* ════════════════════════════════════
+     LECTURER
+  ════════════════════════════════════ */
+  .qr-container {
+    background: #fff; border-radius: 20px; padding: 24px;
+    display: inline-block;
+    box-shadow: 0 0 0 8px var(--bg2), 0 0 0 9px var(--bg3);
+  }
+  .qr-meta { margin-top: 12px; text-align: center; font-size: 13px; color: #475569; font-weight: 600; }
+  .countdown-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 16px; font-weight: 700; font-family: var(--mono);
+  }
+  .pulse-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.8); }
+  }
+  .live-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 0; border-bottom: 1px solid var(--bg3);
+  }
+  .live-row:last-child { border-bottom: none; }
+  .mini-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--bg1); border: 1px solid var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--blue); flex-shrink: 0;
+    font-family: var(--mono);
+  }
+  .records-table-wrap {
+    background: var(--bg2); border: 1px solid var(--bg3);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .records-header {
+    display: grid; grid-template-columns: 1.2fr 0.6fr 0.9fr 0.7fr 80px;
+    padding: 12px 18px; border-bottom: 1px solid var(--bg3);
+    font-size: 11px; color: var(--text3); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .records-row {
+    display: grid; grid-template-columns: 1.2fr 0.6fr 0.9fr 0.7fr 80px;
+    padding: 14px 18px; border-bottom: 1px solid var(--bg3);
+    align-items: center; font-size: 14px;
+  }
+  .records-row:last-child { border-bottom: none; }
+  .code-pill {
+    background: var(--bg1); border: 1px solid var(--bg3);
+    border-radius: 6px; padding: 2px 8px;
+    font-size: 12px; font-weight: 700; color: var(--purple);
+    font-family: var(--mono); display: inline-block;
+  }
+  .filter-btn {
+    padding: 7px 16px; border-radius: 20px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    background: var(--bg2); color: var(--text2);
+    font-family: var(--font); transition: all 0.15s;
+  }
+  .filter-btn.active { background: var(--purple-dark); color: #e9d5ff; }
+
+  /* ════════════════════════════════════
+     STEP PANELS (scan flow)
+  ════════════════════════════════════ */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; }
+
+  /* ════════════════════════════════════
+     SUCCESS SCREEN
+  ════════════════════════════════════ */
+  .success-screen { text-align: center; padding: 60px 0; }
+  .success-emoji { font-size: 72px; display: block; margin-bottom: 20px;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  /* ════════════════════════════════════
+     ERROR BOX
+  ════════════════════════════════════ */
+  .error-box {
+    margin-top: 20px; padding: 16px 18px;
+    background: #1c0a0a; border: 1px solid #7f1d1d;
+    border-radius: var(--radius-md); font-size: 14px; color: #fca5a5; line-height: 1.5;
+  }
+
+  /* ════════════════════════════════════
+     ANIMATIONS
+  ════════════════════════════════════ */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeSlideUp 0.35s ease both; }
+
+  /* ════════════════════════════════════
+     RESPONSIVE
+  ════════════════════════════════════ */
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stat-value { font-size: 22px; }
+    .records-header, .records-row { grid-template-columns: 1fr 0.6fr 0.8fr 60px; }
+    .records-header span:nth-child(3), .records-row span:nth-child(3) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     PAGE: LOGIN
+════════════════════════════════════════ -->
+<div id="page-login" class="page active">
+  <div class="login-box fade-in">
+    <div class="login-logo">
+      <div class="login-logo-icon">🎓</div>
+      <h1>UFuture</h1>
+      <p>University Learning Management System</p>
+    </div>
+    <div class="login-card">
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:6px">Sign in</h2>
+      <p style="color:var(--text3);font-size:14px;margin-bottom:22px;line-height:1.5">Use your passkey with Face ID for secure, passwordless access.</p>
+
+      <!-- User selector (demo) -->
+      <div id="user-list" style="margin-bottom:20px"></div>
+
+      <!-- Passkey button -->
+      <button class="btn-primary w-full" id="btn-passkey" onclick="startPasskey()" disabled
+        style="opacity:0.5;cursor:not-allowed">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Sign in with Passkey
+      </button>
+
+      <div class="security-note">
+        <span style="font-size:18px;flex-shrink:0">🔒</span>
+        <p>Your Face ID biometric never leaves your device. Only your student/lecturer ID, course, and attendance timestamp are stored.</p>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--text3);font-size:12px;margin-top:18px">UFuture Smart Attendance · Prototype Demo</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: STUDENT DASHBOARD
+════════════════════════════════════════ -->
+<div id="page-student" class="page">
+  <!-- nav -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">🎓</div>
+      <span class="nav-logo-text">UFuture</span>
+      <span class="role-badge role-student">STUDENT</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:600" id="s-name"></div>
+        <div style="font-size:12px;color:var(--text3)" id="s-id"></div>
+      </div>
+      <button class="btn-ghost" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+  <div class="container fade-in">
+    <div style="margin-bottom:28px">
+      <h1 style="font-size:24px;font-weight:700;margin-bottom:4px" id="s-greeting"></h1>
+      <p style="color:var(--text3);font-size:14px" id="s-date"></p>
+    </div>
+    <!-- hero -->
+    <div class="hero-card">
+      <h3>Mark attendance</h3>
+      <p>Scan the QR code displayed by your lecturer. Your location and identity are verified in seconds. No buddy-pinching possible.</p>
+      <button class="btn-primary" onclick="goScan()" style="width:auto">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+          <path d="M14 14h.01M18 14h.01M14 18h.01M18 18h.01"/>
+        </svg>
+        Scan QR Code
+      </button>
+    </div>
+    <!-- stats -->
+    <div class="stats-grid" id="s-stats"></div>
+    <!-- courses -->
+    <div class="section-label">My Courses</div>
+    <div id="s-courses"></div>
+    <!-- recent -->
+    <div id="s-recent-wrap" class="hidden">
+      <div class="section-label mt-6">Recent attendance</div>
+      <div class="card" style="padding:0;overflow:hidden" id="s-recent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: SCAN QR
+════════════════════════════════════════ -->
+<div id="page-scan" class="page">
+  <nav class="nav">
+    <div class="nav-logo">
+      <button class="btn-back" onclick="goStudentDash()">←</button>
+      <span style="font-weight:600;font-size:17px">Scan Attendance QR</span>
+    </div>
+  </nav>
+  <div class="container-sm fade-in">
+
+    <!-- Step 0: camera -->
+    <div id="step-camera" class="step-panel active">
+      <div class="section-label mb-3">Select course</div>
+      <div id="scan-course-list"></div>
+
+      <!-- Fake camera -->
+      <div class="camera-view">
+        <div class="camera-overlay"></div>
+        <div class="scanner-corner tl"></div>
+        <div class="scanner-corner tr"></div>
+        <div class="scanner-corner bl"></div>
+        <div class="scanner-corner br"></div>
+        <div class="camera-hint" style="position:relative;z-index:1">
+          <span class="camera-icon">📷</span>
+          Point at the lecturer's QR code
+        </div>
+      </div>
+
+      <!-- Out-of-range demo toggle -->
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Demo: simulate out-of-range</div>
+          <div class="toggle-sub">Toggle to test geolocation rejection</div>
+        </div>
+        <button class="toggle-btn" id="toggle-oor" onclick="toggleOOR()">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+
+      <button class="btn-primary w-full" onclick="simulateScan()">Simulate QR Scan</button>
+    </div>
+
+    <!-- Step 1: detected / geo -->
+    <div id="step-geo" class="step-panel" style="text-align:center;padding:40px 0">
+      <div style="font-size:48px;margin-bottom:16px">📡</div>
+      <h3 style="margin-bottom:8px;font-size:18px">QR Code Detected</h3>
+      <p id="geo-msg" style="color:var(--text3);font-size:14px;margin-bottom:20px"></p>
+      <div id="geo-badge-wrap"></div>
+      <div id="geo-error-box" class="hidden error-box"></div>
+    </div>
+
+    <!-- Step 2: face id -->
+    <div id="step-face" class="step-panel" style="text-align:center;padding:40px 0">
+      <div id="geo-badge-face" style="margin-bottom:24px"></div>
+      <div class="faceid-wrap idle" id="faceid-anim">
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- corners -->
+          <rect x="3" y="3" width="20" height="20" rx="4" fill="none" stroke-width="2.8" class="face-stroke"/>
+          <rect x="57" y="3" width="20" height="20" rx="4" fill="none" stroke-width="2.8" class="face-stroke"/>
+          <rect x="3" y="57" width="20" height="20" rx="4" fill="none" stroke-width="2.8" class="face-stroke"/>
+          <rect x="57" y="57" width="20" height="20" rx="4" fill="none" stroke-width="2.8" class="face-stroke"/>
+          <!-- eyes -->
+          <circle cx="28" cy="32" r="3.5" fill="none" stroke-width="2.2" class="face-stroke"/>
+          <circle cx="52" cy="32" r="3.5" fill="none" stroke-width="2.2" class="face-stroke"/>
+          <!-- nose -->
+          <line x1="40" y1="37" x2="40" y2="44" stroke-width="2" stroke-linecap="round" class="face-stroke"/>
+          <!-- smile -->
+          <path d="M 28 52 Q 40 62 52 52" stroke-width="2.5" stroke-linecap="round" class="face-stroke"/>
+          <!-- scan line -->
+          <rect id="scan-line" x="10" y="0" width="60" height="4" rx="2" fill="var(--blue)" opacity="0.5"/>
+        </svg>
+      </div>
+      <h3 style="margin-bottom:8px;font-size:18px">Verify your identity</h3>
+      <p id="face-msg" style="color:var(--text3);font-size:14px">Look at your device to authenticate…</p>
+    </div>
+
+    <!-- Step 3: success -->
+    <div id="step-success" class="step-panel success-screen">
+      <span class="success-emoji">🎉</span>
+      <h3 style="color:var(--green);font-size:22px;margin-bottom:8px">Attendance marked!</h3>
+      <p id="success-msg" style="color:var(--text3);font-size:14px;margin-bottom:28px"></p>
+      <button class="btn-ghost" onclick="goStudentDash()" style="font-size:15px;padding:12px 32px">Back to dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: LECTURER DASHBOARD
+════════════════════════════════════════ -->
+<div id="page-lecturer" class="page">
+  <nav class="nav">
+    <div class="nav-logo">
+      <button class="btn-back hidden" id="lec-back-btn" onclick="lecBack()">←</button>
+      <div class="nav-logo-icon">🎓</div>
+      <span class="nav-logo-text">UFuture</span>
+      <span class="role-badge role-lecturer">LECTURER</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:600" id="l-name"></div>
+        <div style="font-size:12px;color:var(--text3)" id="l-id"></div>
+      </div>
+      <button class="btn-ghost" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- Lecturer sub-views -->
+  <div id="lec-home" class="container fade-in">
+    <h1 style="font-size:22px;font-weight:700;margin-bottom:4px">Lecturer Portal</h1>
+    <p style="color:var(--text3);font-size:14px;margin-bottom:28px" id="l-date"></p>
+    <div class="stats-grid" id="l-stats"></div>
+    <div class="section-label mt-2 mb-3">Generate Attendance QR</div>
+    <div id="l-courses"></div>
+    <button onclick="showLecRecords()" class="btn-ghost w-full mt-4"
+      style="padding:14px;font-size:15px;font-weight:600;border-radius:var(--radius-md)">
+      View Attendance Records →
+    </button>
+  </div>
+
+  <div id="lec-qr" class="container hidden fade-in" style="text-align:center">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px" id="qr-course-name"></h2>
+    <p style="color:var(--text3);font-size:14px;margin-bottom:24px" id="qr-course-meta"></p>
+    <div class="qr-container" id="qr-canvas-wrap" style="margin-bottom:20px">
+      <canvas id="qr-canvas" width="200" height="200"></canvas>
+      <div class="qr-meta" id="qr-label"></div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div class="countdown-badge">
+        <div class="pulse-dot" id="qr-dot" style="background:var(--green)"></div>
+        <span id="qr-countdown">5:00</span>
+      </div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px">QR rotates automatically</div>
+    </div>
+    <div class="flex justify-center gap-3 mb-6">
+      <button class="btn-ghost" onclick="refreshQR()" style="padding:10px 22px;font-size:14px;font-weight:600">↻ Refresh now</button>
+      <button class="btn-purple" onclick="showLecRecords()" style="padding:10px 22px">View records →</button>
+    </div>
+    <!-- live feed -->
+    <div class="card" style="text-align:left">
+      <div class="section-label mb-3" id="live-label"></div>
+      <div id="live-feed"></div>
+    </div>
+  </div>
+
+  <div id="lec-records" class="container hidden fade-in">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">Attendance Records</h2>
+    <p style="color:var(--text3);font-size:14px;margin-bottom:20px">All passkey-verified entries with geo confirmation</p>
+    <div class="flex gap-2 mb-4" style="flex-wrap:wrap" id="filter-btns"></div>
+    <div class="records-table-wrap">
+      <div class="records-header">
+        <span>Student</span><span>Course</span><span>Date</span><span>Time</span><span>Status</span>
+      </div>
+      <div id="records-body"></div>
+    </div>
+    <div style="margin-top:14px;padding:13px 18px;background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius-md);font-size:13px;color:var(--text3)">
+      <span id="record-count" style="color:var(--text1);font-weight:700"></span> records · No biometric data stored. Each entry: Student ID, course, date, time, GPS coords.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+// ── Data ────────────────────────────────
+const USERS = {
+  students: [
+    { id: "A22EC0001", name: "Ahmad Faris",  role: "student",  courses: ["CS101","CS202","MA101"] },
+    { id: "A22EC0042", name: "Nurul Ain",    role: "student",  courses: ["CS101","CS301","EE201"] },
+    { id: "A22EC0078", name: "Reza Hakim",   role: "student",  courses: ["CS202","MA101","EE201"] },
+  ],
+  lecturers: [
+    { id: "L001", name: "Dr. Amir Hamzah",  role: "lecturer", courses: ["CS101","CS202"] },
+    { id: "L002", name: "Dr. Siti Rahimah", role: "lecturer", courses: ["MA101","CS301"] },
+  ]
+};
+
+const SESSIONS = {
+  CS101: { name: "Data Structures",   room: "DK3", building: "Faculty of Computing" },
+  CS202: { name: "Algorithms",        room: "DK1", building: "Faculty of Computing" },
+  MA101: { name: "Calculus I",        room: "BK2", building: "Faculty of Science" },
+  CS301: { name: "Operating Systems", room: "DK5", building: "Faculty of Computing" },
+  EE201: { name: "Circuit Analysis",  room: "EK1", building: "Faculty of Engineering" },
+};
+
+let attendanceRecords = [
+  { studentId:"A22EC0042", studentName:"Nurul Ain",  course:"CS101", date:"2026-05-09", time:"08:03", verified:true },
+  { studentId:"A22EC0078", studentName:"Reza Hakim", course:"CS101", date:"2026-05-09", time:"08:07", verified:true },
+  { studentId:"A22EC0001", studentName:"Ahmad Faris",course:"CS202", date:"2026-05-10", time:"10:02", verified:true },
+];
+
+let currentUser = null;
+let selectedScanCourse = null;
+let outOfRange = false;
+let qrTimerInterval = null;
+let qrCountdown = 300;
+let activeLecCourse = null;
+let activeFilter = "all";
+
+// ── Helpers ──────────────────────────────
+const $ = id => document.getElementById(id);
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function now() { return new Date(); }
+function fmtDate(d) {
+  return d.toLocaleDateString('en-MY', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+}
+function fmtTime(d) {
+  return d.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' });
+}
+function todayStr() { return now().toISOString().split('T')[0]; }
+function greeting() {
+  const h = now().getHours();
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
+function initials(name) { return name.split(' ').map(n=>n[0]).join('').slice(0,2); }
+
+// ── LOGIN ────────────────────────────────
+(function buildUserList() {
+  const wrap = $('user-list');
+  const all = [...USERS.students, ...USERS.lecturers];
+  all.forEach(u => {
+    const btn = document.createElement('button');
+    btn.className = 'user-option';
+    btn.dataset.id = u.id;
+    btn.innerHTML = `
+      <div class="avatar avatar-${u.role}">${initials(u.name)}</div>
+      <div>
+        <div class="user-name">${u.name}</div>
+        <div class="user-meta">${u.id} · ${u.role === 'lecturer' ? 'Lecturer' : 'Student'}</div>
+      </div>
+      <span class="check-icon hidden">✓</span>`;
+    btn.onclick = () => selectUser(u, btn);
+    wrap.appendChild(btn);
+  });
+})();
+
+function selectUser(u, btn) {
+  document.querySelectorAll('.user-option').forEach(b => {
+    b.classList.remove('selected');
+    b.querySelector('.check-icon').classList.add('hidden');
+  });
+  btn.classList.add('selected');
+  btn.querySelector('.check-icon').classList.remove('hidden');
+  currentUser = u;
+  const pb = $('btn-passkey');
+  pb.disabled = false;
+  pb.style.opacity = '1';
+  pb.style.cursor = 'pointer';
+}
+
+function startPasskey() {
+  if (!currentUser) return;
+  const pb = $('btn-passkey');
+  pb.disabled = true;
+  pb.style.opacity = '0.7';
+  pb.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Scanning Face ID…`;
+  setTimeout(() => {
+    pb.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Verified ✓`;
+    pb.style.background = 'var(--green)';
+    setTimeout(afterLogin, 600);
+  }, 2000);
+}
+
+function afterLogin() {
+  if (currentUser.role === 'student') {
+    buildStudentDash();
+    showPage('page-student');
+  } else {
+    buildLecturerDash();
+    showPage('page-lecturer');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  const pb = $('btn-passkey');
+  pb.disabled = true;
+  pb.style.opacity = '0.5';
+  pb.style.background = 'var(--blue)';
+  pb.style.cursor = 'not-allowed';
+  pb.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Sign in with Passkey`;
+  document.querySelectorAll('.user-option').forEach(b => {
+    b.classList.remove('selected');
+    b.querySelector('.check-icon').classList.add('hidden');
+  });
+  clearInterval(qrTimerInterval);
+  showPage('page-login');
+}
+
+// ── STUDENT DASHBOARD ────────────────────
+function buildStudentDash() {
+  const u = currentUser;
+  $('s-name').textContent = u.name;
+  $('s-id').textContent = u.id;
+  $('s-greeting').textContent = `${greeting()}, ${u.name.split(' ')[0]} 👋`;
+  $('s-date').textContent = fmtDate(now());
+
+  const myRec = attendanceRecords.filter(r => r.studentId === u.id);
+  const total = u.courses.length * 4;
+  const pct = total ? Math.round(myRec.length / total * 100) : 0;
+
+  $('s-stats').innerHTML = [
+    { icon:'📚', val: u.courses.length, label:'Courses enrolled' },
+    { icon:'✅', val: myRec.length,      label:'Classes attended' },
+    { icon:'📊', val: pct + '%',         label:'Attendance rate' },
+  ].map(s => `
+    <div class="stat-card">
+      <div class="stat-icon">${s.icon}</div>
+      <div class="stat-value">${s.val}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`).join('');
+
+  $('s-courses').innerHTML = u.courses.map(code => {
+    const sess = SESSIONS[code];
+    const cnt = myRec.filter(r => r.course === code).length;
+    return `
+      <div class="course-row">
+        <div class="course-code-badge">${code}</div>
+        <div style="flex:1">
+          <div class="course-name">${sess.name}</div>
+          <div class="course-meta">${sess.room} · ${sess.building}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="course-count">${cnt}</div>
+          <div class="course-count-label">attended</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  if (myRec.length > 0) {
+    $('s-recent-wrap').classList.remove('hidden');
+    $('s-recent').innerHTML = myRec.map((r, i) => `
+      <div class="record-row">
+        <div class="dot-green"></div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500">${SESSIONS[r.course]?.name}</div>
+          <div style="font-size:12px;color:var(--text3)">${r.date} · ${r.time}</div>
+        </div>
+        <span class="badge-verified">VERIFIED</span>
+      </div>`).join('');
+  } else {
+    $('s-recent-wrap').classList.add('hidden');
+  }
+}
+
+function goStudentDash() {
+  resetScanFlow();
+  buildStudentDash();
+  showPage('page-student');
+}
+
+// ── SCAN QR ──────────────────────────────
+function goScan() {
+  resetScanFlow();
+  selectedScanCourse = currentUser.courses[0];
+  buildScanCourseList();
+  showPage('page-scan');
+}
+
+function buildScanCourseList() {
+  $('scan-course-list').innerHTML = currentUser.courses.map(code => `
+    <button class="course-select-option ${code === selectedScanCourse ? 'sel' : ''}"
+      onclick="selectScanCourse('${code}', this)">
+      <strong>${code}</strong> — ${SESSIONS[code]?.name}
+    </button>`).join('');
+}
+
+function selectScanCourse(code, el) {
+  selectedScanCourse = code;
+  document.querySelectorAll('.course-select-option').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function toggleOOR() {
+  outOfRange = !outOfRange;
+  const btn = $('toggle-oor');
+  btn.classList.toggle('on', outOfRange);
+}
+
+function resetScanFlow() {
+  outOfRange = false;
+  const t = $('toggle-oor');
+  if (t) t.classList.remove('on');
+  showStep('camera');
+  const fa = $('faceid-anim');
+  if (fa) fa.className = 'faceid-wrap idle';
+}
+
+function showStep(name) {
+  ['camera','geo','face','success'].forEach(s => {
+    $('step-' + s).classList.remove('active');
+  });
+  $('step-' + name).classList.add('active');
+}
+
+function simulateScan() {
+  showStep('geo');
+  $('geo-msg').textContent = 'Verifying your location…';
+  $('geo-badge-wrap').innerHTML = `<span class="geo-badge geo-pending">📍 Checking GPS…</span>`;
+  $('geo-error-box').classList.add('hidden');
+
+  setTimeout(() => {
+    const dist = outOfRange ? 183 : Math.floor(Math.random() * 8) + 2;
+    const ok = dist <= 10;
+    $('geo-badge-wrap').innerHTML = ok
+      ? `<span class="geo-badge geo-ok">✓ Within range (${dist}m from classroom)</span>`
+      : `<span class="geo-badge geo-fail">✗ Out of range (${dist}m — max 10m)</span>`;
+
+    if (!ok) {
+      $('geo-msg').textContent = 'Location check failed.';
+      $('geo-error-box').classList.remove('hidden');
+      $('geo-error-box').innerHTML = `
+        You are <strong>${dist} metres</strong> from the classroom. Must be within 10 metres to mark attendance.
+        <br><br>
+        <button class="btn-ghost" onclick="showStep('camera')" style="margin-top:4px">← Try again</button>`;
+      return;
+    }
+
+    $('geo-msg').textContent = 'Location confirmed. Verifying identity…';
+    setTimeout(() => {
+      $('geo-badge-face').innerHTML = `<span class="geo-badge geo-ok">✓ Location verified (${dist}m)</span>`;
+      showStep('face');
+      const fa = $('faceid-anim');
+      fa.className = 'faceid-wrap scanning';
+      $('face-msg').textContent = 'Look at your device camera…';
+
+      setTimeout(() => {
+        fa.className = 'faceid-wrap success-anim';
+        $('face-msg').textContent = 'Identity confirmed!';
+        setTimeout(() => {
+          // record attendance
+          const rec = {
+            studentId: currentUser.id,
+            studentName: currentUser.name,
+            course: selectedScanCourse,
+            date: todayStr(),
+            time: fmtTime(now()),
+            verified: true
+          };
+          attendanceRecords.push(rec);
+          $('success-msg').textContent =
+            `${SESSIONS[selectedScanCourse]?.name} — ${fmtDate(now())} at ${rec.time}`;
+          showStep('success');
+        }, 700);
+      }, 2200);
+    }, 700);
+  }, 1600);
+}
+
+// ── LECTURER DASHBOARD ───────────────────
+function buildLecturerDash() {
+  const u = currentUser;
+  $('l-name').textContent = u.name;
+  $('l-id').textContent = u.id;
+  $('l-date').textContent = fmtDate(now());
+
+  const todayRec = attendanceRecords.filter(r => r.date === todayStr());
+  $('l-stats').innerHTML = [
+    { icon:'📚', val: u.courses.length,      label:'My courses',          color:'var(--blue)' },
+    { icon:'✅', val: todayRec.length,        label:"Today's attendance",  color:'var(--green)' },
+    { icon:'📋', val: attendanceRecords.length, label:'Total records',     color:'var(--purple)' },
+  ].map(s => `
+    <div class="stat-card">
+      <div class="stat-icon">${s.icon}</div>
+      <div class="stat-value" style="color:${s.color}">${s.val}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`).join('');
+
+  $('l-courses').innerHTML = u.courses.map(code => {
+    const sess = SESSIONS[code];
+    return `
+      <div class="course-row">
+        <div class="course-code-badge" style="color:var(--purple)">${code}</div>
+        <div style="flex:1">
+          <div class="course-name">${sess.name}</div>
+          <div class="course-meta">${sess.room} · ${sess.building}</div>
+        </div>
+        <button class="btn-purple" onclick="showQR('${code}')">Generate QR</button>
+      </div>`;
+  }).join('');
+
+  showLecView('home');
+}
+
+function showLecView(view) {
+  ['home','qr','records'].forEach(v => $('lec-' + v).classList.add('hidden'));
+  $('lec-' + view).classList.remove('hidden');
+  $('lec-back-btn').classList.toggle('hidden', view === 'home');
+}
+
+function lecBack() {
+  clearInterval(qrTimerInterval);
+  buildLecturerDash();
+}
+
+function showQR(code) {
+  activeLecCourse = code;
+  const sess = SESSIONS[code];
+  $('qr-course-name').textContent = sess.name;
+  $('qr-course-meta').textContent = `${sess.room} · ${fmtDate(now())}`;
+  $('qr-label').textContent = `${code} · Geo-locked · 10m radius`;
+  $('live-label').textContent = `Live attendance — ${code}`;
+  drawQR();
+  startQRTimer();
+  updateLiveFeed();
+  showLecView('qr');
+}
+
+function drawQR() {
+  const canvas = $('qr-canvas');
+  const ctx = canvas.getContext('2d');
+  const size = 200;
+  ctx.clearRect(0, 0, size, size);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+
+  const cells = 21;
+  const cell = size / cells;
+  const seed = Math.floor(Math.random() * 9999);
+
+  function isFilled(r, c) {
+    const corner = (r < 7 && c < 7) || (r < 7 && c >= cells - 7) || (r >= cells - 7 && c < 7);
+    const innerSquare =
+      (r >= 2 && r <= 4 && c >= 2 && c <= 4) ||
+      (r >= 2 && r <= 4 && c >= cells - 5 && c <= cells - 3) ||
+      (r >= cells - 5 && r <= cells - 3 && c >= 2 && c <= 4);
+    const border = corner && (r === 0 || r === 6 || r === cells - 7 || r === cells - 1 ||
+                              c === 0 || c === 6 || c === cells - 7 || c === cells - 1);
+    const timing = (r === 6 || c === 6) && !corner && (r + c) % 2 === 0;
+    const data = !corner && r !== 6 && c !== 6 && (((r * 3 + c * 7 + seed * 13) % 5) < 2);
+    return innerSquare || border || timing || data;
+  }
+
+  ctx.fillStyle = '#1a1a2e';
+  for (let r = 0; r < cells; r++) {
+    for (let c = 0; c < cells; c++) {
+      if (isFilled(r, c)) {
+        ctx.beginPath();
+        const x = c * cell + 1, y = r * cell + 1, w = cell - 1, h = cell - 1;
+        ctx.roundRect(x, y, w, h, 1.5);
+        ctx.fill();
+      }
+    }
+  }
+}
+
+function startQRTimer() {
+  clearInterval(qrTimerInterval);
+  qrCountdown = 300;
+  updateCountdown();
+  qrTimerInterval = setInterval(() => {
+    qrCountdown--;
+    updateCountdown();
+    if (qrCountdown <= 0) {
+      drawQR();
+      qrCountdown = 300;
+    }
+  }, 1000);
+}
+
+function updateCountdown() {
+  const m = Math.floor(qrCountdown / 60);
+  const s = String(qrCountdown % 60).padStart(2, '0');
+  $('qr-countdown').textContent = `${m}:${s}`;
+  $('qr-dot').style.background = qrCountdown <= 30 ? 'var(--red)' : 'var(--green)';
+}
+
+function refreshQR() {
+  drawQR();
+  qrCountdown = 300;
+  updateCountdown();
+}
+
+function updateLiveFeed() {
+  const recs = attendanceRecords.filter(r => r.course === activeLecCourse);
+  const feed = $('live-feed');
+  if (recs.length === 0) {
+    feed.innerHTML = `<p style="color:var(--text3);font-size:14px">Waiting for students to check in…</p>`;
+    return;
+  }
+  feed.innerHTML = recs.map(r => `
+    <div class="live-row">
+      <div class="mini-avatar">${r.studentId.slice(-3)}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500">${r.studentName}</div>
+        <div style="font-size:12px;color:var(--text3)">${r.studentId}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;color:var(--green);font-weight:600">${r.time}</div>
+        <div style="font-size:11px;color:var(--text3)">Geo ✓ · Passkey ✓</div>
+      </div>
+    </div>`).join('');
+}
+
+function showLecRecords() {
+  clearInterval(qrTimerInterval);
+  activeFilter = 'all';
+  buildFilterBtns();
+  renderRecords();
+  showLecView('records');
+}
+
+function buildFilterBtns() {
+  const courses = ['all', ...currentUser.courses];
+  $('filter-btns').innerHTML = courses.map(c => `
+    <button class="filter-btn ${c === activeFilter ? 'active' : ''}"
+      onclick="filterRecords('${c}', this)">
+      ${c === 'all' ? 'All courses' : c}
+    </button>`).join('');
+}
+
+function filterRecords(code, el) {
+  activeFilter = code;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderRecords();
+}
+
+function renderRecords() {
+  const filtered = activeFilter === 'all'
+    ? attendanceRecords
+    : attendanceRecords.filter(r => r.course === activeFilter);
+
+  $('record-count').textContent = filtered.length;
+  if (filtered.length === 0) {
+    $('records-body').innerHTML = `<div style="padding:24px;text-align:center;color:var(--text3)">No records found</div>`;
+    return;
+  }
+  $('records-body').innerHTML = filtered.map((r, i) => `
+    <div class="records-row">
+      <div>
+        <div style="font-weight:500">${r.studentName}</div>
+        <div style="font-size:12px;color:var(--text3)">${r.studentId}</div>
+      </div>
+      <span class="code-pill">${r.course}</span>
+      <span style="color:var(--text2)">${r.date}</span>
+      <span style="color:var(--text2);font-family:var(--mono);font-size:13px">${r.time}</span>
+      <span class="badge-verified">✓ GEO</span>
+    </div>`).join('');
+}
+
+// ── Init ─────────────────────────────────
+showPage('page-login');
+</script>
+</body>
+</html>
